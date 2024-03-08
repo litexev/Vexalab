@@ -3,6 +3,7 @@ use crate::block::render_block_overlay;
 use crate::block::Block;
 use crate::block::BlockOverlay;
 use crate::block::BlockType;
+use crate::cache::get_string;
 use crate::entity::Entity;
 use crate::placer::Placer;
 use crate::player::Player;
@@ -23,6 +24,9 @@ pub struct World {
     view_offset_x: f32,
     view_offset_y: f32,
     camera: Camera2D,
+    sky_material: Material,
+    sky_top_color: Color,
+    sky_bottom_color: Color,
 }
 impl World {
     pub fn new(
@@ -30,11 +34,27 @@ impl World {
         entities: Vec<Box<dyn Entity>>,
         bg_color: Color,
     ) -> Self {
+        // Load sky shader
+        let sky_material = load_material(
+            ShaderSource::Glsl {
+                vertex: &get_string("./assets/shaders/sky.vert"),
+                fragment: &get_string("./assets/shaders/sky.frag"),
+            },
+            MaterialParams {
+                uniforms: vec![
+                    ("canvasSize".to_owned(), UniformType::Float2),
+                    ("startColor".to_owned(), UniformType::Float4),
+                    ("endColor".to_owned(), UniformType::Float4),
+                ],
+                ..Default::default()
+            },
+        )
+        .unwrap();
         let mut world = World {
             blocks,
             entities,
             bg_color,
-            player: Player::new(SubGridPos { x: 1.0, y: 1.0 }),
+            player: Player::new(SubGridPos { x: 28.0, y: 1.0 }),
             placer: Placer::new(),
             view_offset_x: 0.0,
             view_offset_y: 0.0,
@@ -42,6 +62,9 @@ impl World {
             camera: Camera2D {
                 ..Default::default()
             },
+            sky_material,
+            sky_top_color: hex_color("#0b0108", 1.0),
+            sky_bottom_color: hex_color("#1a1a22", 0.0),
         };
         world.player.spawn();
         return world;
@@ -53,6 +76,18 @@ impl World {
 
     pub fn render(&mut self, vis_block_count: &mut i32) {
         clear_background(self.bg_color);
+
+        // draw sky
+        gl_use_material(&self.sky_material);
+        self.sky_material
+            .set_uniform("canvasSize", (screen_width(), screen_height()));
+        self.sky_material
+            .set_uniform("startColor", self.sky_top_color);
+        self.sky_material
+            .set_uniform("endColor", self.sky_bottom_color);
+        draw_rectangle(0.0, 0.0, screen_width(), screen_height(), WHITE);
+        gl_use_default_material();
+
         self.set_camera_settings();
         set_camera(&self.camera);
 
@@ -92,6 +127,7 @@ impl World {
         self.placer.update(&self.camera, &mut self.blocks);
 
         set_default_camera();
+        self.placer.render_hud();
     }
 
     fn lerp_view_offset_to_player(&mut self) {
@@ -124,14 +160,18 @@ impl World {
 
 pub fn generate_test_world() -> World {
     let mut blocks: HashMap<GridPos, Block> = HashMap::new();
-    for x in 0..48 {
-        for y in 0..6 {
+    for x in 0..64 {
+        for y in 0..12 {
+            let mut overlay = BlockOverlay::None;
+            if y == 0 {
+                overlay = BlockOverlay::Top;
+            }
             blocks.insert(
                 GridPos { x: x, y: y + 12 },
                 Block {
                     block_type: BlockType::Solid,
                     color: hex_color("#1f3029", 1.0),
-                    overlay: BlockOverlay::Grass,
+                    overlay: overlay,
                 },
             );
         }
@@ -139,11 +179,11 @@ pub fn generate_test_world() -> World {
     let blue_block = Block {
         block_type: BlockType::Solid,
         color: hex_color("#5184c3", 1.0),
-        overlay: BlockOverlay::Box,
+        overlay: BlockOverlay::None,
     };
-    blocks.insert(GridPos { x: 5, y: 10 }, blue_block.clone());
-    blocks.insert(GridPos { x: 5, y: 11 }, blue_block.clone());
-    blocks.insert(GridPos { x: 9, y: 11 }, blue_block.clone());
+    blocks.insert(GridPos { x: 32, y: 10 }, blue_block.clone());
+    blocks.insert(GridPos { x: 32, y: 11 }, blue_block.clone());
+    blocks.insert(GridPos { x: 36, y: 11 }, blue_block.clone());
     let mut world = World::new(blocks, Vec::new(), hex_color("#15171c", 1.0));
     world.player.spawn();
     return world;

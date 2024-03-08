@@ -1,2 +1,4 @@
 /target
 *.lock
+/src - Copy
+*.7z

@@ -28,12 +28,14 @@ pub enum BlockOverlay {
     None,
     Grass,
     Box,
+    Top,
 }
 
 pub fn get_overlay_texture(overlay: BlockOverlay) -> Texture2D {
     match overlay {
         BlockOverlay::Grass => get_texture("./assets/overlays/grass.png"),
         BlockOverlay::Box => get_texture("./assets/overlays/box.png"),
+        BlockOverlay::Top => get_texture("./assets/overlays/top.png"),
         _ => panic!("get_overlay_texture called on none overlay"),
     }
 }

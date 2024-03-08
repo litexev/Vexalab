@@ -7,6 +7,7 @@ use std::sync::Mutex;
 
 lazy_static! {
     static ref IMAGE_CACHE: Mutex<HashMap<String, Texture2D>> = Mutex::new(HashMap::new());
+    static ref STRING_CACHE: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
 }
 
 fn load_bytes_from_file(file_path: &str) -> Result<Vec<u8>, std::io::Error> {
@@ -27,4 +28,14 @@ pub fn get_texture(path: &str) -> Texture2D {
     texture.set_filter(FilterMode::Nearest);
     cache.insert(path.to_string(), texture.clone());
     return texture;
+}
+
+pub fn get_string(path: &str) -> String {
+    let mut cache = STRING_CACHE.lock().unwrap();
+    if let Some(string) = cache.get(path) {
+        return string.clone();
+    }
+    let string = std::fs::read_to_string(path).unwrap();
+    cache.insert(path.to_string(), string.clone());
+    return string;
 }
