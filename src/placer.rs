@@ -78,11 +78,11 @@ impl Placer {
 
         if mouse_wheel_y != 0.0 {
             if color_modifier {
-                self.color += 20.0 * mouse_wheel_y.signum() as f64;
+                self.color += 20.0 * -mouse_wheel_y.signum() as f64;
             }
 
             if bright_modifier {
-                self.brightness += 0.025 * mouse_wheel_y.signum() as f64;
+                self.brightness += 0.025 * -mouse_wheel_y.signum() as f64;
             }
         }
 

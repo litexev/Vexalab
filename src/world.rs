@@ -58,13 +58,13 @@ impl World {
             placer: Placer::new(),
             view_offset_x: 0.0,
             view_offset_y: 0.0,
-            zoom: 4.0,
+            zoom: 6.0,
             camera: Camera2D {
                 ..Default::default()
             },
             sky_material,
             sky_top_color: hex_color("#0b0108", 1.0),
-            sky_bottom_color: hex_color("#1a1a22", 0.0),
+            sky_bottom_color: hex_color("#161a20", 0.0),
         };
         world.player.spawn();
         return world;

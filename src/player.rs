@@ -1,6 +1,5 @@
 use crate::block::Block;
 use crate::cache::get_texture;
-use crate::load_pixel_texture;
 use crate::position::GridPos;
 use crate::position::SubGridPos;
 use crate::utils::aabb;
@@ -31,19 +30,23 @@ impl Player {
         return (self.vel_x, self.vel_y);
     }
 }
-const NEIGHBORS: [(i32, i32); 12] = [
-    (-1, 1),
-    (2, 0),
-    (2, 1),
-    (1, -1),
-    (2, 2),
-    (2, -1),
+const NEIGHBORS: [(i32, i32); 16] = [
     (-1, -1),
     (0, -1),
-    (1, 2),
-    (0, 2),
-    (-1, 2),
+    (1, -1),
+    (2, -1),
+    (3, -1),
     (-1, 0),
+    (3, 0),
+    (-1, 1),
+    (3, -1),
+    (-1, 2),
+    (3, 2),
+    (-1, 3),
+    (0, 3),
+    (1, 3),
+    (2, 3),
+    (3, 3),
 ];
 const GRAVITY: f32 = 0.008;
 impl Player {
@@ -122,8 +125,8 @@ impl Player {
                     blocked_x = aabb(
                         new_x,
                         self.pos.y,
-                        2.0,
-                        2.0,
+                        3.0,
+                        3.0,
                         neighbor_grid_x as f32,
                         neighbor_grid_y as f32,
                         1.0,
@@ -135,8 +138,8 @@ impl Player {
                     blocked_y = aabb(
                         self.pos.x,
                         new_y,
-                        2.0,
-                        2.0,
+                        3.0,
+                        3.0,
                         neighbor_grid_x as f32,
                         neighbor_grid_y as f32,
                         1.0,
@@ -151,7 +154,7 @@ impl Player {
             self.vel_x = 0.0;
             // snap to left/right of blocking block
             if self.pos.x < x_blocker.x as f32 {
-                self.pos.x = x_blocker.x as f32 - 2.0; // left
+                self.pos.x = x_blocker.x as f32 - 3.0; // left
             } else if self.pos.x > x_blocker.x as f32 {
                 self.pos.x = x_blocker.x as f32 + 1.0; // right
             }
@@ -165,7 +168,7 @@ impl Player {
             // blocker debug
             // snap to top/bottom of blocking block
             if self.pos.y < y_blocker.y as f32 {
-                self.pos.y = y_blocker.y as f32 - 2.0; // top
+                self.pos.y = y_blocker.y as f32 - 3.0; // top
             } else {
                 self.pos.y = y_blocker.y as f32 + 1.0; // bottom
             }
