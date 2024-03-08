@@ -64,7 +64,7 @@ impl World {
             },
             sky_material,
             sky_top_color: hex_color("#0b0108", 1.0),
-            sky_bottom_color: hex_color("#161a20", 0.0),
+            sky_bottom_color: hex_color("#1b1f27", 0.0),
         };
         world.player.spawn();
         return world;
@@ -161,7 +161,7 @@ impl World {
 pub fn generate_test_world() -> World {
     let mut blocks: HashMap<GridPos, Block> = HashMap::new();
     for x in 0..64 {
-        for y in 0..12 {
+        for y in 0..15 {
             let mut overlay = BlockOverlay::None;
             if y == 0 {
                 overlay = BlockOverlay::Top;

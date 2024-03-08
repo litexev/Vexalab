@@ -58,10 +58,11 @@ impl Player {
     }
     pub fn render(&self) {
         if let Some(sprite) = &self.sprite {
+            let sprite_h = sprite.height();
             draw_texture_ex(
                 sprite,
                 self.pos.x * BLOCK_SIZE,
-                (self.pos.y - 1.0) * BLOCK_SIZE,
+                (self.pos.y - 1.0) * BLOCK_SIZE - sprite_h / 1.5,
                 WHITE,
                 DrawTextureParams {
                     flip_x: self.flip,
