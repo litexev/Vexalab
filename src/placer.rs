@@ -72,7 +72,7 @@ impl Placer {
         self.last_y = block_pos.y;
     }
     fn placer_input_update(&mut self) {
-        let (mouse_wheel_x, mouse_wheel_y) = mouse_wheel();
+        let (_, mouse_wheel_y) = mouse_wheel();
         let color_modifier = is_key_down(KeyCode::LeftControl);
         let bright_modifier = is_key_down(KeyCode::LeftAlt);
 
@@ -88,12 +88,6 @@ impl Placer {
 
         self.color = (self.color + 360.0) % 360.0;
         self.brightness = clamp(self.brightness, 0.0, 1.0);
-        println!(
-            "mouse wheel debug {} {} {}",
-            mouse_wheel_x,
-            mouse_wheel_y,
-            mouse_wheel_y.signum()
-        );
     }
     pub fn render_hud(&self) {
         if is_key_down(KeyCode::LeftControl) {
