@@ -14,7 +14,7 @@ mod world;
 use debug::draw_debug_text;
 use game::Game;
 
-const BUILD_VERSION: &str = "PROTO3";
+const BUILD_VERSION: &str = "PROTO4";
 const BLOCK_SIZE: f32 = 6.0;
 
 fn macroquad_conf() -> Conf {

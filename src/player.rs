@@ -48,7 +48,7 @@ const NEIGHBORS: [(i32, i32); 16] = [
     (2, 3),
     (3, 3),
 ];
-const GRAVITY: f32 = 0.008;
+const GRAVITY: f32 = 0.012;
 impl Player {
     pub fn get_pos(&self) -> SubGridPos {
         return self.pos;
@@ -58,6 +58,7 @@ impl Player {
     }
     pub fn render(&self) {
         if let Some(sprite) = &self.sprite {
+            let sprite_w = sprite.width();
             let sprite_h = sprite.height();
             draw_texture_ex(
                 sprite,
@@ -82,14 +83,14 @@ impl Player {
         // INPUT
         if is_key_down(KeyCode::Left) || is_key_down(KeyCode::A) {
             self.flip = true;
-            self.vel_x = -0.2;
+            self.vel_x = -0.3;
         }
         if is_key_down(KeyCode::Right) || is_key_down(KeyCode::D) {
             self.flip = false;
-            self.vel_x = 0.2;
+            self.vel_x = 0.3;
         }
         if is_key_down(KeyCode::Space) && self.grounded {
-            self.vel_y = -0.2;
+            self.vel_y = -0.35;
         }
 
         // new position we'll try to move to
