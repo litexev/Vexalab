@@ -141,7 +141,7 @@ impl World {
             self.zoom / screen_width(),
             (screen_width() / screen_height() * self.zoom) / screen_width(),
         );
-        self.camera.target = vec2(self.view_offset_x.round(), self.view_offset_y.round());
+        self.camera.target = vec2(self.view_offset_x, self.view_offset_y);
     }
     fn calc_screen_vis(&self) -> VisRange {
         let min = self.camera.screen_to_world(Vec2::new(0.0, 0.0));

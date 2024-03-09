@@ -3,9 +3,9 @@ use crate::{
     position::GridPos,
     BLOCK_SIZE,
 };
-use comfy::HashMap;
 use hsl::HSL;
 use macroquad::prelude::*;
+use std::collections::HashMap;
 
 pub struct Placer {
     last_x: f32,
@@ -78,6 +78,17 @@ impl Placer {
                 return;
             }
             blocks.remove(&block_grid_pos);
+        } else if is_mouse_button_down(MouseButton::Middle) {
+            if let Some(block) = blocks.get(&block_grid_pos) {
+                let color = HSL::from_rgb(&[
+                    (block.color.r * 255.0) as u8,
+                    (block.color.g * 255.0) as u8,
+                    (block.color.b * 255.0) as u8,
+                ]);
+                self.color = color.h;
+                self.brightness = color.l;
+                self.overlay = block.overlay;
+            }
         }
     }
     fn place_loop(
