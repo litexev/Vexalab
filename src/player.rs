@@ -4,6 +4,7 @@ use crate::position::GridPos;
 use crate::position::SubGridPos;
 use crate::utils::aabb;
 use crate::utils::clamp;
+use crate::utils::hex_color;
 use crate::BLOCK_SIZE;
 use macroquad::prelude::*;
 use std::collections::HashMap;
@@ -62,8 +63,8 @@ impl Player {
             let sprite_h = sprite.height();
             draw_texture_ex(
                 sprite,
-                self.pos.x * BLOCK_SIZE,
-                (self.pos.y - 1.0) * BLOCK_SIZE - sprite_h / 1.5,
+                (self.pos.x * BLOCK_SIZE) - (sprite_w / 2.0) + (BLOCK_SIZE * (3.0 / 2.0)),
+                ((self.pos.y) * BLOCK_SIZE) - sprite_h + (BLOCK_SIZE * 3.0),
                 WHITE,
                 DrawTextureParams {
                     flip_x: self.flip,
@@ -71,13 +72,13 @@ impl Player {
                 },
             )
         }
-        /*draw_rectangle(
+        draw_rectangle(
             self.pos.x * BLOCK_SIZE,
             self.pos.y * BLOCK_SIZE,
-            BLOCK_SIZE * 2.0,
-            BLOCK_SIZE * 2.0,
-            hex_color("#c34f51", 1.0),
-        );*/
+            BLOCK_SIZE * 3.0,
+            BLOCK_SIZE * 3.0,
+            hex_color("#c34f51", 0.5),
+        );
     }
     pub fn update(&mut self, blocks: &HashMap<GridPos, Block>) {
         // INPUT
