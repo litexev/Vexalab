@@ -27,6 +27,7 @@ impl Placer {
             overlay: BlockOverlay::None,
         }
     }
+
     pub fn calc_hsl_color(&self) -> Color {
         let hsl_color = HSL {
             h: self.color,
@@ -45,7 +46,11 @@ impl Placer {
 
         // draw a block there
         let block_pos = screen_mouse_pos / BLOCK_SIZE;
-        let block_grid_pos = GridPos::new(block_pos.x.floor() as i32, block_pos.y.floor() as i32);
+        let block_grid_pos = GridPos::new(
+            block_pos.x.floor() as i32,
+            block_pos.y.floor() as i32,
+            false,
+        );
         if blocks.contains_key(&block_grid_pos) {
             self.select_loop(block_pos, block_grid_pos, blocks);
         } else {
@@ -54,6 +59,7 @@ impl Placer {
         self.last_x = block_pos.x;
         self.last_y = block_pos.y;
     }
+
     fn select_loop(
         &mut self,
         _: Vec2,
@@ -91,6 +97,7 @@ impl Placer {
             }
         }
     }
+
     fn place_loop(
         &mut self,
         _: Vec2,
@@ -115,12 +122,10 @@ impl Placer {
             if block_grid_pos.x as f32 == self.last_x && block_grid_pos.y as f32 == self.last_y {
                 return;
             }
-            /*if blocks.contains_key(&block_grid_pos) {
-                return;
-            }*/
             blocks.insert(block_grid_pos, block.clone());
         }
     }
+
     fn placer_input_update(&mut self) {
         let (_, mouse_wheel_y) = mouse_wheel();
         let color_modifier = is_key_down(KeyCode::LeftControl);
@@ -139,6 +144,7 @@ impl Placer {
         self.color = (self.color + 360.0) % 360.0;
         self.brightness = clamp(self.brightness, 0.0, 1.0);
     }
+
     pub fn render_hud(&self) {
         if is_key_down(KeyCode::LeftControl) {
             self.render_color_hud();
@@ -146,6 +152,7 @@ impl Placer {
             self.render_brightness_hud();
         }
     }
+
     pub fn render_color_hud(&self) {
         let estimated_size = COLOR_HUD_WIDTH * 36.0;
         let start_x = screen_width() / 2.0 - estimated_size / 2.0;

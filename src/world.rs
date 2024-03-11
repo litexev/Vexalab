@@ -3,7 +3,6 @@ use crate::block::render_block_overlay;
 use crate::block::Block;
 use crate::block::BlockOverlay;
 use crate::block::BlockType;
-use crate::cache::get_string;
 use crate::entity::Entity;
 use crate::placer::Placer;
 use crate::player::Player;
@@ -14,10 +13,11 @@ use crate::vis::VisRange;
 use crate::BLOCK_SIZE;
 use macroquad::prelude::*;
 use std::collections::HashMap;
+
 pub struct World {
     pub blocks: HashMap<GridPos, Block>,
-    pub entities: Vec<Box<dyn Entity>>,
     pub bg_color: Color,
+    pub entities: Vec<Box<dyn Entity>>,
     pub player: Player,
     pub placer: Placer,
     zoom: f32,
@@ -28,6 +28,7 @@ pub struct World {
     sky_top_color: Color,
     sky_bottom_color: Color,
 }
+
 impl World {
     pub fn new(
         blocks: HashMap<GridPos, Block>,
@@ -35,25 +36,12 @@ impl World {
         bg_color: Color,
     ) -> Self {
         // Load sky shader
-        let sky_material = load_material(
-            ShaderSource::Glsl {
-                vertex: &get_string("./assets/shaders/sky.vert"),
-                fragment: &get_string("./assets/shaders/sky.frag"),
-            },
-            MaterialParams {
-                uniforms: vec![
-                    ("canvasSize".to_owned(), UniformType::Float2),
-                    ("startColor".to_owned(), UniformType::Float4),
-                    ("endColor".to_owned(), UniformType::Float4),
-                ],
-                ..Default::default()
-            },
-        )
-        .unwrap();
-        let mut world = World {
+        let sky_material = load_sky_shader().unwrap();
+
+        let world = World {
             blocks,
-            entities,
             bg_color,
+            entities,
             player: Player::new(SubGridPos { x: 28.0, y: 1.0 }),
             placer: Placer::new(),
             view_offset_x: 0.0,
@@ -66,30 +54,18 @@ impl World {
             sky_top_color: hex_color("#0b0108", 1.0),
             sky_bottom_color: hex_color("#1b1f27", 0.0),
         };
-        world.player.spawn();
+
         return world;
     }
+
     pub fn update(&mut self) {
         self.player.update(&self.blocks);
-        self.lerp_view_offset_to_player();
     }
 
-    pub fn render(&mut self, vis_block_count: &mut i32) {
+    pub fn render(&mut self) {
         clear_background(self.bg_color);
-
-        // draw sky
-        gl_use_material(&self.sky_material);
-        self.sky_material
-            .set_uniform("canvasSize", (screen_width(), screen_height()));
-        self.sky_material
-            .set_uniform("startColor", self.sky_top_color);
-        self.sky_material
-            .set_uniform("endColor", self.sky_bottom_color);
-        draw_rectangle(0.0, 0.0, screen_width(), screen_height(), WHITE);
-        gl_use_default_material();
-
+        self.draw_sky();
         self.set_camera_settings();
-        set_camera(&self.camera);
 
         // calculate how much we can see on screen for culling
         let world_vis = self.calc_screen_vis();
@@ -103,7 +79,6 @@ impl World {
                     continue;
                 }
                 blocks_to_render.push((pos, block));
-                *vis_block_count += 1;
             }
         }
         // these need to be rendered seperately to not fuck up draw calls(?)
@@ -117,10 +92,6 @@ impl World {
             }
         }
 
-        // render all entities
-        for entity in &mut self.entities {
-            entity.render();
-        }
         self.player.render();
 
         // update and render placer
@@ -130,19 +101,19 @@ impl World {
         self.placer.render_hud();
     }
 
-    fn lerp_view_offset_to_player(&mut self) {
+    fn set_camera_settings(&mut self) {
         let target_x = self.player.pos.x * BLOCK_SIZE;
         let target_y = self.player.pos.y * BLOCK_SIZE;
         self.view_offset_x += (target_x - self.view_offset_x) * 0.1;
         self.view_offset_y += (target_y - self.view_offset_y) * 0.02;
-    }
-    fn set_camera_settings(&mut self) {
         self.camera.zoom = vec2(
             self.zoom / screen_width(),
             (screen_width() / screen_height() * self.zoom) / screen_width(),
         );
         self.camera.target = vec2(self.view_offset_x, self.view_offset_y);
+        set_camera(&self.camera);
     }
+
     fn calc_screen_vis(&self) -> VisRange {
         let min = self.camera.screen_to_world(Vec2::new(0.0, 0.0));
         let max = self
@@ -156,18 +127,30 @@ impl World {
             max.y + BLOCK_SIZE,
         );
     }
+
+    fn draw_sky(&mut self) {
+        let mat = &self.sky_material;
+        gl_use_material(mat);
+        mat.set_uniform("canvasSize", (screen_width(), screen_height()));
+        mat.set_uniform("startColor", self.sky_top_color);
+        mat.set_uniform("endColor", self.sky_bottom_color);
+        draw_rectangle(0.0, 0.0, screen_width(), screen_height(), WHITE);
+        gl_use_default_material();
+    }
 }
 
 pub fn generate_test_world() -> World {
     let mut blocks: HashMap<GridPos, Block> = HashMap::new();
+
+    // generate grass
     for x in 0..64 {
         for y in 0..15 {
             let mut overlay = BlockOverlay::None;
             if y == 0 {
-                overlay = BlockOverlay::Top;
+                overlay = BlockOverlay::None;
             }
             blocks.insert(
-                GridPos { x: x, y: y + 12 },
+                GridPos::new(x, y + 12, false),
                 Block {
                     block_type: BlockType::Solid,
                     color: hex_color("#1f3029", 1.0),
@@ -176,15 +159,33 @@ pub fn generate_test_world() -> World {
             );
         }
     }
-    let blue_block = Block {
-        block_type: BlockType::Solid,
-        color: hex_color("#5184c3", 1.0),
-        overlay: BlockOverlay::None,
-    };
-    blocks.insert(GridPos { x: 32, y: 10 }, blue_block.clone());
-    blocks.insert(GridPos { x: 32, y: 11 }, blue_block.clone());
-    blocks.insert(GridPos { x: 36, y: 11 }, blue_block.clone());
-    let mut world = World::new(blocks, Vec::new(), hex_color("#15171c", 1.0));
-    world.player.spawn();
-    return world;
+
+    // place blue blocks
+    let blue_block = Block::new(
+        BlockType::Solid,
+        hex_color("#5184c3", 1.0),
+        BlockOverlay::None,
+    );
+    blocks.insert(GridPos::new(32, 10, false), blue_block.clone());
+    blocks.insert(GridPos::new(32, 11, false), blue_block.clone());
+    blocks.insert(GridPos::new(36, 11, false), blue_block.clone());
+
+    return World::new(blocks, Vec::new(), hex_color("#15171c", 1.0));
+}
+
+pub fn load_sky_shader() -> Result<macroquad::material::Material, macroquad::Error> {
+    return load_material(
+        ShaderSource::Glsl {
+            vertex: &include_str!("./assets/shaders/sky.vert"),
+            fragment: &include_str!("./assets/shaders/sky.frag"),
+        },
+        MaterialParams {
+            uniforms: vec![
+                ("canvasSize".to_owned(), UniformType::Float2),
+                ("startColor".to_owned(), UniformType::Float4),
+                ("endColor".to_owned(), UniformType::Float4),
+            ],
+            ..Default::default()
+        },
+    );
 }

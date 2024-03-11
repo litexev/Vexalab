@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 
 mod block;
-mod cache;
 mod debug;
 mod entity;
 mod game;
@@ -34,6 +33,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
         game.update();
+        game.render();
         draw_debug_text(&game, font.clone());
         next_frame().await
     }

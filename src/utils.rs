@@ -37,7 +37,7 @@ pub fn hex_color(hex: &str, alpha: f32) -> Color {
 }
 
 #[macro_export]
-macro_rules! load_pixel_texture {
+macro_rules! include_texture2d {
     ($path:expr) => {{
         let sprite =
             Texture2D::from_file_with_format(include_bytes!($path), Some(ImageFormat::Png));

@@ -1,6 +1,5 @@
-use crate::cache::get_texture;
 use crate::position::GridPos;
-use crate::BLOCK_SIZE;
+use crate::{include_texture2d, BLOCK_SIZE};
 use macroquad::prelude::*;
 
 #[derive(Clone, Copy)]
@@ -9,6 +8,7 @@ pub struct Block {
     pub color: Color,
     pub overlay: BlockOverlay,
 }
+
 impl Block {
     pub fn new(block_type: BlockType, color: Color, overlay: BlockOverlay) -> Self {
         Block {
@@ -18,6 +18,7 @@ impl Block {
         }
     }
 }
+
 #[derive(PartialEq, Clone, Copy)]
 pub enum BlockType {
     Solid,
@@ -31,10 +32,11 @@ pub enum BlockOverlay {
 
 pub fn get_overlay_texture(overlay: BlockOverlay) -> Texture2D {
     match overlay {
-        BlockOverlay::Top => get_texture("./assets/overlays/top.png"),
+        BlockOverlay::Top => include_texture2d!("./assets/overlays/top.png"),
         _ => panic!("get_overlay_texture called on none overlay"),
     }
 }
+
 pub fn render_block(block: Block, pos: GridPos) {
     let scaled_pos = pos * BLOCK_SIZE;
     draw_rectangle(
@@ -52,11 +54,6 @@ pub fn render_block_overlay(block: Block, pos: GridPos) {
         &get_overlay_texture(block.overlay),
         scaled_pos.x as f32,
         scaled_pos.y as f32,
-        Color {
-            r: 1.0,
-            g: 1.0,
-            b: 1.0,
-            a: block.color.a,
-        },
+        Color::new(1.0, 1.0, 1.0, block.color.a),
     )
 }
